@@ -1,2 +1,3 @@
 # Lox
-My implementation(golang) of the Lox programming language.
+
+My implementation of the Lox programming language.
