@@ -138,6 +138,12 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     @Override
+    public Object visitThisExpr(Expr.This expr) {
+        resolveLocal(expr, expr.keyword);
+        return null;
+    }
+
+    @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
             Lox.error(expr.name, "Can't read local variable in its own initializer.");
@@ -160,10 +166,14 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         declare(stmt.name);
         define(stmt.name);
 
+        beginScope();
+        scopes.peek().put("this", true);
         for (Stmt.Function method : stmt.methods) {
             FunctionType declaration = FunctionType.METHOD;
             resolveFunction(method, declaration);
         }
+
+        endScope();
 
         return null;
     }
