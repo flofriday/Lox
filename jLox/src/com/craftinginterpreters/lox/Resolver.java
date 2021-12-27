@@ -15,11 +15,6 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         this.interpreter = interpreter;
     }
 
-    private enum FunctionType {
-        NONE,
-        FUNCTION
-    }
-
     public void resolve(List<Stmt> statements) {
         for (Stmt statement : statements) {
             resolve(statement);
@@ -58,7 +53,7 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     private void resolveLocal(Expr expr, Token name) {
-        for (int i = scopes.size(); i >= 0; i--) {
+        for (int i = scopes.size() - 1; i >= 0; i--) {
             if (scopes.get(i).containsKey(name.lexeme)) {
                 interpreter.resolve(expr, scopes.size() - 1 - i);
                 return;
@@ -106,6 +101,12 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     @Override
+    public Object visitGetExpr(Expr.Get expr) {
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
     public Object visitGroupingExpr(Expr.Grouping expr) {
         resolve(expr.expression);
         return null;
@@ -130,6 +131,13 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
     }
 
     @Override
+    public Object visitSetExpr(Expr.Set expr) {
+        resolve(expr.value);
+        resolve(expr.object);
+        return null;
+    }
+
+    @Override
     public Object visitVariableExpr(Expr.Variable expr) {
         if (!scopes.isEmpty() && scopes.peek().get(expr.name.lexeme) == Boolean.FALSE) {
             Lox.error(expr.name, "Can't read local variable in its own initializer.");
@@ -144,6 +152,19 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         beginScope();
         resolve(stmt.statements);
         endScope();
+        return null;
+    }
+
+    @Override
+    public Object visitClassStmt(Stmt.Class stmt) {
+        declare(stmt.name);
+        define(stmt.name);
+
+        for (Stmt.Function method : stmt.methods) {
+            FunctionType declaration = FunctionType.METHOD;
+            resolveFunction(method, declaration);
+        }
+
         return null;
     }
 
@@ -200,5 +221,11 @@ public class Resolver implements Expr.Visitor, Stmt.Visitor {
         resolve(stmt.condition);
         resolve(stmt.body);
         return null;
+    }
+
+    private enum FunctionType {
+        NONE,
+        FUNCTION,
+        METHOD
     }
 }
