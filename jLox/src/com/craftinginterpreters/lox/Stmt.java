@@ -24,12 +24,13 @@ abstract class Stmt {
       return visitor.visitBlockStmt(this);
     }
 
-   final List<Stmt> statements;
+    final List<Stmt> statements;
   }
 
   static class Class extends Stmt {
-    Class(Token name, List<Stmt.Function> methods) {
+    Class(Token name, Expr.Variable superclass, List<Stmt.Function> methods) {
       this.name = name;
+      this.superclass = superclass;
       this.methods = methods;
    }
 
@@ -38,8 +39,9 @@ abstract class Stmt {
       return visitor.visitClassStmt(this);
     }
 
-   final Token name;
-   final List<Stmt.Function> methods;
+    final Token name;
+    final Expr.Variable superclass;
+    final List<Stmt.Function> methods;
   }
 
   static class Expression extends Stmt {
@@ -52,7 +54,7 @@ abstract class Stmt {
       return visitor.visitExpressionStmt(this);
     }
 
-   final Expr expression;
+    final Expr expression;
   }
 
   static class Function extends Stmt {
@@ -67,9 +69,9 @@ abstract class Stmt {
       return visitor.visitFunctionStmt(this);
     }
 
-   final Token name;
-   final List<Token> params;
-   final List<Stmt> body;
+    final Token name;
+    final List<Token> params;
+    final List<Stmt> body;
   }
 
   static class If extends Stmt {
@@ -84,9 +86,9 @@ abstract class Stmt {
       return visitor.visitIfStmt(this);
     }
 
-   final Expr condition;
-   final Stmt thenBranch;
-   final Stmt elseBranch;
+    final Expr condition;
+    final Stmt thenBranch;
+    final Stmt elseBranch;
   }
 
   static class Print extends Stmt {
@@ -99,7 +101,7 @@ abstract class Stmt {
       return visitor.visitPrintStmt(this);
     }
 
-   final Expr expression;
+    final Expr expression;
   }
 
   static class Return extends Stmt {
@@ -113,8 +115,8 @@ abstract class Stmt {
       return visitor.visitReturnStmt(this);
     }
 
-   final Token keyword;
-   final Expr value;
+    final Token keyword;
+    final Expr value;
   }
 
   static class Var extends Stmt {
@@ -128,8 +130,8 @@ abstract class Stmt {
       return visitor.visitVarStmt(this);
     }
 
-   final Token name;
-   final Expr initializer;
+    final Token name;
+    final Expr initializer;
   }
 
   static class While extends Stmt {
@@ -143,8 +145,8 @@ abstract class Stmt {
       return visitor.visitWhileStmt(this);
     }
 
-   final Expr condition;
-   final Stmt body;
+    final Expr condition;
+    final Stmt body;
   }
 
 
