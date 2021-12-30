@@ -7,6 +7,9 @@ OBJS=$(SRCS:.c=.o)
 
 all: clox
 
+repl: clox
+	./clox
+
 clox: $(OBJS)
 	$(CC) $(LDFLAGS) -o $@ $^
 
