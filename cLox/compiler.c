@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 
 #include "common.h"
@@ -8,13 +9,39 @@ typedef struct
 {
     Token current;
     Token previous;
+    bool hadError;
+    bool panicMode;
 } Parser;
 
 Parser parser;
+Chunk *compilingChunk;
+static Chunk *currentChunk()
+{
+    return compilingChunk;
+}
 
 static void errorAt(Token *token, const char *message)
 {
-    // TODO: continue here at page 309
+    if (parser.panicMode)
+        return;
+
+    parser.panicMode = true;
+    fprintf(stderr, "[line %d] Error", token->line);
+
+    if (token->type == TOKEN_EOF)
+    {
+        fprintf(stderr, " at end");
+    }
+    else if (token->type == TOKEN_ERROR)
+    {
+    }
+    else
+    {
+        fprintf(stderr, " at '%.*s'", token->length, token->start);
+    }
+
+    fprintf(stderr, ": %s\n", message);
+    parser.hadError = true;
 }
 
 static void error(const char *message)
@@ -41,10 +68,74 @@ static void advance()
     }
 }
 
+static void consume(TokenType type, const char *message)
+{
+    if (parser.current.type == type)
+    {
+        advance();
+        return;
+    }
+
+    errorAtCurrent(message);
+}
+
+static void emitByte(uint8_t byte)
+{
+    writeChunk(currentChunk(), byte, parser.previous.line);
+}
+
+static void emitBytes(uint8_t byte1, uint8_t byte2)
+{
+    emitByte(byte1);
+    emitByte(byte2);
+}
+
+static void emitReturn()
+{
+    emitByte(OP_RETURN);
+}
+
+static uint8_t makeConstant(Value value)
+{
+    int constant = addConstant(currentChunk(), value);
+    if (constant > UINT8_MAX)
+    {
+        error("Toomany constants in one chunk");
+        return 0;
+    }
+
+    return (uint8_t)constant;
+}
+
+static void emitConstant(Value value)
+{
+    emitBytes(OP_CONSTANT, makeConstant(value));
+}
+
+static void endCompiler()
+{
+    emitReturn();
+}
+
+static void number()
+{
+    double value = strtod(parser.previous.start, NULL);
+}
+
+static void expression()
+{
+}
+
 bool compile(const char *source, Chunk *chunk)
 {
     initScanner(source);
+    compilingChunk = chunk;
+    parser.panicMode = false;
+    parser.hadError = false;
+
     advance();
     expression();
     consume(TOKEN_EOF, "Expected end of expression.");
+    endCompiler();
+    return !parser.hadError;
 }

@@ -23,7 +23,7 @@ static void repl()
     }
 }
 
-static char *readfile(const char *path)
+static char *readFile(const char *path)
 {
     FILE *file = fopen(path, "rb");
     if (file == NULL)
