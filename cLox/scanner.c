@@ -48,7 +48,7 @@ static char peek()
 
 static char peekNext()
 {
-    if (isAtEnd)
+    if (isAtEnd())
         return '\0';
 
     return scanner.current[1];
@@ -101,6 +101,7 @@ static void skipWhitespace()
         case '\n':
             scanner.line++;
             advance();
+            break;
 
         case '/':
             if (peekNext() == '/')
@@ -114,7 +115,7 @@ static void skipWhitespace()
             }
 
         default:
-            break;
+            return;
         }
     }
 }
@@ -200,7 +201,7 @@ static Token number()
     // Look for fractional part.
     if (peek() == '.' && isDigit(peekNext()))
     {
-        advance;
+        advance();
 
         while (isDigit(peek()))
             advance();
