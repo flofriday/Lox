@@ -1,5 +1,5 @@
 CC = clang
-CFLAGS = -Wall -fdiagnostics-color=always
+CFLAGS = -g -Wall -fdiagnostics-color=always
 #LDFLAGS = -F/System/Library/PrivateFrameworks -framework Apple80211
 
 SRCS=$(wildcard *.c)
