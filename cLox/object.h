@@ -49,6 +49,7 @@ typedef struct
     Obj obj;
     NativeFn function;
 } ObjNative;
+
 struct ObjString
 {
     Obj obj;
@@ -61,12 +62,16 @@ typedef struct ObjUpvalue
 {
     Obj obj;
     Value *location;
+    Value closed;
+    struct ObjUpvalue *next;
 } ObjUpvalue;
 
 typedef struct
 {
     Obj obj;
     ObjFunction *function;
+    ObjUpvalue **upvalues;
+    int upvalueCount;
 } ObjClosure;
 
 ObjClosure *newClosure(ObjFunction *function);

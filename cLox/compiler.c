@@ -46,6 +46,7 @@ typedef struct
 {
     Token name;
     int depth;
+    bool isCaptured;
 } Local;
 
 typedef struct
@@ -59,7 +60,8 @@ typedef enum
     TYPE_FUNCTION,
     TYPE_SCRIPT,
 } FunctionType;
-typedef struct
+
+typedef struct Compiler
 {
     struct Compiler *enclosing;
     ObjFunction *function;
@@ -235,6 +237,7 @@ static void initCompiler(Compiler *compiler, FunctionType type)
 
     Local *local = &current->locals[current->localCount++];
     local->depth = 0;
+    local->isCaptured = false;
     local->name.start = "";
     local->name.length = 0;
 }
@@ -266,7 +269,14 @@ static void endScope()
 
     while (current->localCount > 0 && current->locals[current->localCount - 1].depth > current->scopeDepth)
     {
-        emitByte(OP_POP);
+        if (current->locals[current->localCount - 1].isCaptured)
+        {
+            emitByte(OP_CLOSE_UPVALUE);
+        }
+        else
+        {
+            emitByte(OP_POP);
+        }
         current->localCount--;
     }
 }
@@ -566,6 +576,7 @@ static int resolveUpvalue(Compiler *compiler, Token *name)
     int local = resolveLocal(compiler->enclosing, name);
     if (local != -1)
     {
+        compiler->enclosing->locals[local].isCaptured = true;
         return addUpvalue(compiler, (uint8_t)local, true);
     }
 
@@ -589,6 +600,7 @@ static void addLocal(Token name)
     Local *local = &current->locals[current->localCount++];
     local->name = name;
     local->depth = -1;
+    local->isCaptured = false;
     local->depth = current->scopeDepth;
 }
 
@@ -722,7 +734,7 @@ static void function(FunctionType type)
 
     for (int i = 0; i < function->upvalueCount; i++)
     {
-        emitByte(compiler.upvalues[i].isLocal ? i : 0);
+        emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
         emitByte(compiler.upvalues[i].index);
     }
 }
