@@ -1,0 +1,13 @@
+class Scone {
+    hey() {
+       print "hey"; 
+    }
+
+    topping(first, second) {
+        print "scone with " + first + " and " + second + ".";
+    }
+}
+
+var scone = Scone();
+scone.hey();
+// scone.topping("berries", "dog");
